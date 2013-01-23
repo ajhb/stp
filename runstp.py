@@ -200,7 +200,7 @@ for testcase in test_case_candidates:
             print 'Test ' + testcase + ' can not be run because platform ' + options.platform + ' does not have required interfaces '
     except Exception, e:
         print traceback.format_exc()
-        test_results[testcase.replace(TEST_SUITES_DIR,'')]  = e 
+        test_results[testcase.replace(TEST_SUITES_DIR,'')]  = {'RC': 'F', 'Comments': e, 'Perf': None} 
         
 print "\n\nResults summary"
 for key, val in test_results.items():
