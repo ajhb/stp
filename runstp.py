@@ -7,9 +7,15 @@ import imp
 import serial
 import fdpexpect
 import traceback
+import xmodem
+import logging
 
 from time import gmtime, strftime
 from optparse import OptionParser
+
+#Setting default logging configuration for modules that use python's logging module
+logging.basicConfig()
+logging.level=logging.DEBUG
 
 #Defining some runstp constants and variables
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) #runstp root folder. Folder where runstp is located
@@ -42,10 +48,11 @@ def get_test_case_candidates(root_folder, test_cases=None):
 def runstp_import(module_path):
     exec(compile(open(os.path.join(ROOT_DIR,module_path)).read(), module_path, 'exec'),None,None)
     
+# Function to print info message and exit
 def print_message_and_exit(message):
     print (message)
     sys.exit(1)
-
+    
 #Defining the command line options for runstp
 parser = OptionParser()
 
@@ -71,7 +78,6 @@ parser.add_option("-c", "--compiler",
                   action="store", dest="compiler", type="string", default='gcc',
                   help="Compiler user to generate test case binaries (gcc,cgt_ccs,etc)")
           
-
 
 #Parsing commad line arguments
 (options, args) = parser.parse_args()
@@ -121,7 +127,6 @@ except Exception, e:
 
 #Obtaining the physical setup of the board
 from src.equipment_info import *
-from src.site_info import *
 
 try:
     exec(compile(open(options.bench_path).read(), options.bench_path, 'exec'), None, None)
@@ -133,42 +138,25 @@ except:
 if not platforms_list.has_key(options.platform):
     print_message_and_exit ('No entry found for ' + options.platform + ' in ' + options.bench_path)
 
-# Creating link or copying in tftp root directory test binaries
-cp_src = os.path.join(TEST_BIN_ROOT,platform_info.arch,options.compiler)
+# Creating path to root directory of test binaries
+test_bins_root = os.path.join(TEST_BIN_ROOT, platform_info.arch, options.compiler, platform_info.soc, platform_info.platform)
 
-# Comment out the Link option section and uncomment the Copy option section 
-# if copying of test binaries is preferred
-# Link option
-tftp_link = os.path.join(SITE_INFO['tftp_server_root'],options.compiler)
-if os.path.exists(tftp_link):
-    if os.readlink(tftp_link) != cp_src:
-        print_message_and_exit ('Folder ' + tftp_link + ' already exists and it is not pointing to ' +  cp_src)
-else:
-    os.symlink(cp_src, os.path.join(SITE_INFO['tftp_server_root'],options.compiler))
-# End of Link option
-"""
-#Copy option
-#Copying test binaries to the tftpboot root directory
-import shutil
+def load_getc(size, timeout=1):
+    return serial_connection.read(size)
 
-for root, dirs, files in os.walk(cp_src):
-    current_dst_dir = os.path.join(SITE_INFO['tftp_server_root'],root.replace(os.path.join(TEST_BIN_ROOT,platform_info.arch,''),''))
-    if not os.path.exists(current_dst_dir):
-        os.mkdir(current_dst_dir)
-    for current_file in files:
-        if not os.path.exists(os.path.join(current_dst_dir,current_file)):
-            shutil.copy(os.path.join(root,current_file),current_dst_dir)
-#End of Copy option
-"""
-tftp_base_path = options.compiler + '/' + platform_info.soc + '/' + platform_info.platform
-
+def load_putc(data, timeout=1):
+    return serial_connection.write(data)
+    
+# Function to load application into platform
+def serial_load(bin_path, root_path=test_bins_root):
+    modem = xmodem.XMODEM(load_getc, load_putc)
+    stream = open(os.path.join(test_bins_root,bin_path), 'rb')
+    result = modem.send(stream)
+    stream.close()
+    return result
+     
 #Running the appropriate test cases
 test_results = {} #Results Dictionary
-
-# Depending on compiler, setting appropriate go offset
-go_offset = 0x854
-if options.compiler == 'cgt_ccs':
-    go_offset = 0x22d4
 
 test_case_defs = os.path.join(TEST_SUITES_DIR,'templates','test_defaults.py')
 exec(compile(open(test_case_defs).read(),test_case_defs, 'exec'),None,None)  #Importing the test case default values
@@ -186,8 +174,6 @@ for testcase in test_case_candidates:
             test_log_file = open(os.path.join(test_case_log_folder, platforms_list[options.platform].name + '_' + platforms_list[options.platform].buildId + '.log'), 'w+')
             #Initializing common vairables
             testresult = None
-            load_address = default_load_address
-            go_address = default_go_address
             print 'Running ' + testcase + ' at ' + strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
             #'port':'/dev/ttyUSB8', 'baudrate':19200, 'bytesize':8, 'parity':'N', 'stopbits':1, 'timeout':None, 'xonxoff':0, 'rtscts':0
             serial_connection = serial.Serial(serial_params['port'])
