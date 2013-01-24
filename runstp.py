@@ -52,6 +52,16 @@ def runstp_import(module_path):
 def print_message_and_exit(message):
     print (message)
     sys.exit(1)
+
+# Function to check if the platform being used supports the required interfaces specified by the requires value in the test case
+def check_requires_field(requires, platform_features):
+    for item in requires:
+        if isinstance(item,list):
+            if not set(item) & set(platform_features):
+                return False
+        elif item not in set(platform_features):
+            return False
+    return True
     
 #Defining the command line options for runstp
 parser = OptionParser()
@@ -163,15 +173,16 @@ exec(compile(open(test_case_defs).read(),test_case_defs, 'exec'),None,None)  #Im
 
 serial_params = platforms_list[options.platform].serial_params
 session_start_time = strftime("%a_%d_%b_%Y_%H.%M.%S", gmtime())
+serial_connection = None
 for testcase in test_case_candidates:
     try:
         requires = None
         exec(compile(open(testcase).read(), testcase, 'single'),None,None)
-        if set(requires) <= set(platform_features):
+        if check_requires_field(requires, platform_features):
             #Creating logs folder and log file
             test_case_log_folder = os.path.join(LOGS_ROOT_DIR,platform_info.arch,options.compiler,platform_info.soc,platform_info.platform,session_start_time) + testcase.replace(TEST_SUITES_DIR,'').replace('.py','')
             os.makedirs(test_case_log_folder)
-            test_log_file = open(os.path.join(test_case_log_folder, platforms_list[options.platform].name + '_' + platforms_list[options.platform].buildId + '.log'), 'w+')
+            test_log_file = open(os.path.join(test_case_log_folder, platforms_list[options.platform].name + '_' + platforms_list[options.platform].buildId + '.log'), 'a+')
             #Initializing common vairables
             testresult = None
             print 'Running ' + testcase + ' at ' + strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
@@ -201,6 +212,8 @@ for testcase in test_case_candidates:
     except Exception, e:
         print traceback.format_exc()
         test_results[testcase.replace(TEST_SUITES_DIR,'')]  = {'RC': 'F', 'Comments': e, 'Perf': None} 
+    if serial_connection:
+        serial_connection.close()
         
 print "\n\nResults summary"
 for key, val in test_results.items():

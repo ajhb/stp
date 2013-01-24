@@ -1,14 +1,24 @@
 #@desc Just hello world with binary loaded to target
 
-# What's required to run this test
+# What's required to run this test, this line should always be the first statement in every python test script
 requires = []
 
 
 # START OF TEST LOGIC
+
+# Telling user to reboot/reset the board before starting
 print 'Reboot or power cycle the board now....'
-print serial_load('bootloader/Release/boot.bin')
+
+# Loading the bootloader into the board. See README file for information regarding serial_load function
+serial_load('bootloader/Release/boot.bin')
+
+# Waiting for the CCC sequence, which signals that the board is ready to receive the binary
 platform.expect('CCC')
-print serial_load('hello_world/Release/hello_world.bin')
+
+# Loading the test binary into the board
+serial_load('hello_world/Release/hello_world.bin')
+
+# Waiting for the expected output
 platform.expect('Hello World!!!! from Starterware')
 
 # Return test Result. Valid RC: 'p' => passed, 'f' => failed, 'e' => error
