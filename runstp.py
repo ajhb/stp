@@ -9,6 +9,7 @@ import fdpexpect
 import traceback
 import xmodem
 import logging
+import re
 
 from time import gmtime, strftime
 from optparse import OptionParser
@@ -36,8 +37,9 @@ def get_test_case_candidates(root_folder, test_cases=None):
             if root != os.path.join(TEST_SUITES_DIR,'templates'):
                 for item in files:
                     if test_cases:
-                        if item in test_cases:
-                            result.append(os.path.join(root,item))
+                        for test_spec in test_cases:
+                            if re.search(test_spec,item,re.I):
+                                result.append(os.path.join(root,item))
                     elif item.endswith('.py'):
                         result.append(os.path.join(root, item))
     
