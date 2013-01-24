@@ -75,7 +75,7 @@ parser.add_option("-f", "--folders",
 #Option to pass test cases
 parser.add_option("-t", "--testcases",
                   action="callback", callback=runstp_parser, dest="testcases", type="string",
-                  help="Execute runstp testcases (comma separated)")
+                  help="Execute runstp testcases name patterns (comma separated)")
 #Option to pass platform
 parser.add_option("-p", "--platform",
                   action="store", dest="platform", type="string",
