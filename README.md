@@ -60,8 +60,8 @@ You only need to add files to at least two directories:
  * Write your test script code using python API.
  * Write your test binaries using C code and the Starterware libraries
 
-5.2) TEST FILES NAME
- *  The test file name should identify the test step.
+5.2) TEST CASE SCRIPTS NAMING CONVENTION
+ *  The test file name should identify the test case.
      Use following convention to name the test files so that the test cases can be 
      selectively run based on AREA, SCOPE and/or TYPE.  
      <AREA>_<SCOPE>_<TYPE>_<OPT_ID>,
@@ -81,7 +81,7 @@ You only need to add files to at least two directories:
            
     The OPT_ID Tag defines additional information regarding this test.
     
-5.3) PYTHON FUNCTIONS PROVIDED BY STP
+5.3) PYTHON FUNCTIONS/VARIABLES PROVIDED BY STP to Test Cases
 * STP provides the following functions and variables to aide in test case development:
     - serial_load(bin_path, root_path)
         Function to load binary into platform. Can be called with only bin_path as parameter serial_load(bin_path).
@@ -97,27 +97,36 @@ You only need to add files to at least two directories:
         Returns: Nothing
       
     - platform
-        This variable provides an abstraction of the device being tested, it is initialized to a pxexpect object that uses a serial connection to communicate with
+        This variable provides an abstraction of the device being tested, it is initialized to a pexpect object that uses a serial connection to communicate with
         the board being tested. With this variable the test script is able to send strings to board via platform.send(..), platform.sendline(...), etc and wait for other
         strings from the board via platform.expect(....) for more information see http://pexpect.sourceforge.net/pexpect.html and http://www.noah.org/wiki/pexpect
+
+5.4) PYTHON FUNCTIONS/VARIABLES EXPECTED BY STP from Test Cases
+    - testresult
+        Dictionary that must be defined by test case script to return test case results to STP. 
+        It must have following elements:
+        'RC': string,   Valid RC values are 'p' for passed, 'f' for failed and 'e' for error
+        'Comments': string,   Any additional information related to test results
+        'Perf': Dictionary or None,  optional Dictionary with performance data {'name': "testname", 'values': [], 'units': "values unit"}
     
-5.4) FIRST PYTHON STATEMENT IN TEST CASE
- * The first python statement in every test case should be requires = ['a', 'b', 'c' ....]
-   The requires = [...] statement is used to specify ARCH, DRIVER, SOC and/or MACHINE 
-   requirements to run the test scenario. Each element in the list is considered a "must" i.e
-   requires = ['a','b',c'] --> 'a' && 'b' && 'c'; for test cases that can run with "either/or" element 
-   make list [...] for that element, i.e. requires = [['a','b','c']] ---> 'a' || 'b' || 'c'. Combinations of
-   both are allowed for example   
+    - requires
+        The first python statement in every test case MUST be:
+             requires = ['a', 'b', 'c' ....]
+        The requires = [...] statement is used to specify ARCH, DRIVER, SOC and/or MACHINE 
+        requirements to run the test scenario. Each element in the list is considered a "must" i.e
+        requires = ['a','b',c'] --> 'a' && 'b' && 'c'; for test cases that can run with "either/or" element 
+        make list [...] for that element, i.e. requires = [['a','b','c']] ---> 'a' || 'b' || 'c'. 
+        Combinations of both are allowed. For example:
    
-   requires = ['eth', 'spi_master']
-   To run this test the platform must have an ethernet driver and a 
-   spi_master driver
+           requires = ['eth', 'spi_master']
+           To run this test the platform must have an ethernet driver and a 
+           spi_master driver
 
-   requires = ['am3517-evm']
-   This test can only be run on an am3517 EVM.
+           requires = ['am3517-evm']
+           This test can only be run on an am3517 EVM.
 
-   requires = [['mmc', 'nand'], "uart"]
-   This test requires mmc or nand, and UART
+           requires = [['mmc', 'nand'], "uart"]
+           This test requires mmc or nand, and UART
 
  
 6) HOW TO ADD NEW PLATFORMS
@@ -150,15 +159,17 @@ You only need to add files to at least two directories:
 ================================================================================
  *STP is based on python so python needs to be install on your system to be able to run STP. 
  
- *STP is a git project hosted on github, therefore, git needs to be installed on you system to access the code.
+ *STP is a git project hosted on github, therefore, git needs to be installed on your system to access the code.
  
  * STP relies on the following python packages that are not part of the standard python release:
     - pexpect
-        This package implements the expect functionality in python. To install follow the instructions at http://www.noah.org/wiki/pexpect#Download_and_Installation . 
-        You might need to install it as sudo 
+        This package implements the expect functionality in python. 
+        To install follow the instructions at http://www.noah.org/wiki/pexpect#Download_and_Installation. 
+        You might need to install it as sudo. 
     - pyserial
-        This package implements the serial communication functionality in python. To install follow the instructions at http://pyserial.sourceforge.net/pyserial.html#installation
-        You might need to install it as sudo 
+        This package implements the serial communication functionality in python. 
+        To install follow the instructions at http://pyserial.sourceforge.net/pyserial.html#installation.
+        You might need to install it as sudo. 
     - xmodem
         This module implements the xmodem transfer protocol in python. To install:
             1. Obtain the package from http://pypi.python.org/pypi/xmodem
@@ -169,7 +180,8 @@ You only need to add files to at least two directories:
 
 7) HOW TO RUN TESTS
 ================================================================================
- * All test cases are run by running ./runstp.py from the <STP install location>. runstp.py takes the following command line options:
+ * All test cases are run by calling ./runstp.py from the <STP install location>.
+   runstp.py takes the following command line options:
          Usage: runstp.py [options]
 
         Options:
@@ -194,9 +206,12 @@ You only need to add files to at least two directories:
    by option -b.
 
  * -b used to specify the path of a python file where all the information regarding the setup of the equipment used for testing is found.
-    For each equipment there should be a new EquipmentInfo object instantiated that provides the information.  The EquipmentInfo take two parameter as input:
-            -- the first paramters is the board name used to identify which setup information should be used for testing, by matching the -p command line parameter
-            -- the second parameter is an id used to differentiate two or more boards of the same type. Currently this feature is not implemented but it is there for future use.
+    For each equipment there should be a new EquipmentInfo object instantiated that provides the information. 
+     The EquipmentInfo take two parameter as input:
+        -- the first paramters is the board name used to identify which setup information should be used for testing, 
+           by matching the -p command line parameter
+        -- the second parameter is an id used to differentiate two or more boards of the same type. 
+           Currently this feature is not implemented but it is there for future use.
     During a test a board is selected by matching the parameter passed as -p in the command line with the board name passed to EquipmentInfo.
     Currently, only board serial connection information is supported in the framework.
     This option defaults to <stp folder>/bench.py

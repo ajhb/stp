@@ -11,7 +11,7 @@ dut = EquipmentInfo("evmskAM335x", "starterware")
 dut.serial_params = {'port':'/dev/ttyUSB1', 'baudrate':115200, 'bytesize':8, 'parity':'N', 'stopbits':1, 'timeout':None, 'xonxoff':0, 'rtscts':0}
 
 dut = EquipmentInfo("am37x-evm", "starterware")
-dut.serial_params = {'port':'/dev/ttyUSB1', 'baudrate':115200, 'bytesize':8, 'parity':'N', 'stopbits':1, 'timeout':None, 'xonxoff':0, 'rtscts':0}
+dut.serial_params = {'port':'/dev/ttyUSB2', 'baudrate':115200, 'bytesize':8, 'parity':'N', 'stopbits':1, 'timeout':None, 'xonxoff':0, 'rtscts':0}
 
 dut = EquipmentInfo("beaglebone", "starterware")
-dut.serial_params = {'port':'/dev/ttyUSB1', 'baudrate':115200, 'bytesize':8, 'parity':'N', 'stopbits':1, 'timeout':None, 'xonxoff':0, 'rtscts':0}
+dut.serial_params = {'port':'/dev/ttyUSB4', 'baudrate':115200, 'bytesize':8, 'parity':'N', 'stopbits':1, 'timeout':None, 'xonxoff':0, 'rtscts':0}

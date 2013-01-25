@@ -186,7 +186,7 @@ for testcase in test_case_candidates:
             os.makedirs(test_case_log_folder)
             test_log_file = open(os.path.join(test_case_log_folder, platforms_list[options.platform].name + '_' + platforms_list[options.platform].buildId + '.log'), 'a+')
             #Initializing common vairables
-            testresult = None
+            testresult = {'RC':'f', 'Comments':"Default testresult value, please overwrite testresult in your test script ", 'Perf': None}
             print 'Running ' + testcase + ' at ' + strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
             #'port':'/dev/ttyUSB8', 'baudrate':19200, 'bytesize':8, 'parity':'N', 'stopbits':1, 'timeout':None, 'xonxoff':0, 'rtscts':0
             serial_connection = serial.Serial(serial_params['port'])
