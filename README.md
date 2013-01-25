@@ -164,17 +164,24 @@ You only need to add files to at least two directories:
  * STP relies on the following python packages that are not part of the standard python release:
     - pexpect
         This package implements the expect functionality in python. 
-        To install follow the instructions at http://www.noah.org/wiki/pexpect#Download_and_Installation. 
-        You might need to install it as sudo. 
+        To install on ubuntu:
+           sudo apt-get install python-pexpect
+        Alternatively (Non-ubuntu distros)
+           follow the instructions at http://www.noah.org/wiki/pexpect#Download_and_Installation. 
     - pyserial
         This package implements the serial communication functionality in python. 
-        To install follow the instructions at http://pyserial.sourceforge.net/pyserial.html#installation.
-        You might need to install it as sudo. 
+        To install on ubuntu:
+           sudo apt-get install python-serial
+        Alternatively (Non-ubuntu distros)
+           Follow the instructions at http://pyserial.sourceforge.net/pyserial.html#installation.
+        
     - xmodem
-        This module implements the xmodem transfer protocol in python. To install:
-            1. Obtain the package from http://pypi.python.org/pypi/xmodem
-            2. Decompress the archive
-            3. cd to the decompress location and run "sudo python setup.py install:
+        This module implements the xmodem transfer protocol in python. 
+            1. Install python setuptools package with following command:
+                 sudo apt-get install python-setuptools
+            2. Obtain the package from http://pypi.python.org/pypi/xmodem
+            3. Decompress the archive
+            4. cd to the decompress location and run "sudo python setup.py install
         
  * cd to <Starterware installation directory> and clone the project with git clone https://github.com/ajhb/stp.git
 
