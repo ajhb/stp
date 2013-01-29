@@ -34,7 +34,7 @@ def get_test_case_candidates(root_folder, test_cases=None):
     result = []
     for folder in root_folder:
         for root, dirs, files in os.walk(folder):
-            if root != os.path.join(TEST_SUITES_DIR,'templates'):
+           if root.find(os.path.join(TEST_SUITES_DIR,'templates')) != 0:
                 for item in files:
                     if test_cases:
                         for test_spec in test_cases:
@@ -45,10 +45,14 @@ def get_test_case_candidates(root_folder, test_cases=None):
     
     return result
 
-# Function to import templates in test cases with access to runstp object within the module. Python built-in import can not be used since modules are imported 
-# in their one environment and runstp objects like platform will not be recognized by the imported module
-def runstp_import(module_path):
-    exec(compile(open(os.path.join(ROOT_DIR,module_path)).read(), module_path, 'exec'),None,None)
+# Function to import templates in test cases with access to runstp objects within the module. Python built-in import can not be used since modules are imported 
+# in their one environment and runstp objects like platform will not be recognized by the imported module.
+# Takes:
+#       - module_path a string containing the path to the code to be imported relative to <stp install folder>
+#       - glob (Optional) A dictionary containing global environment definitions. Useful if you want the imported module to modify global variables/objects
+#       - loc (Optional) A dictionary containing local environment definitions. Useful if you want the imported module to modify local variables/objects
+def runstp_import(module_path, glob=None, loc=None):
+    exec(compile(open(os.path.join(ROOT_DIR,module_path)).read(), os.path.join(ROOT_DIR,module_path), 'exec'),glob,loc)
     
 # Function to print info message and exit
 def print_message_and_exit(message):
