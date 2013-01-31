@@ -11,6 +11,7 @@ import xmodem
 import logging
 import re
 
+from src.test_equipment.digital_loggers_din_relay_driver import DlDinRelayController
 from time import gmtime, strftime
 from optparse import OptionParser
 
@@ -179,6 +180,20 @@ exec(compile(open(test_case_defs).read(),test_case_defs, 'exec'),None,None)  #Im
 
 serial_params = platforms_list[options.platform].serial_params
 session_start_time = strftime("%a_%d_%b_%Y_%H.%M.%S", gmtime())
+power_controller = None
+
+try:
+    if platforms_list[options.platform].power_port:
+        for power_info, power_port in platforms_list[options.platform].power_port.iteritems():
+            power_controller=getattr(sys.modules[__name__],power_info.driver_class_name)(power_info.init_info)
+            power_controller.power_port = power_port
+except Exception, e:
+    print ('Problem while trying to Initialize power controller for ' + platforms_list[options.platform].name + '-' + str(platforms_list[options.platform].buildId) + 
+    ', please check power_port information for the board')
+    print e
+    print traceback.format_exc()
+    sys.exit(0)
+
 serial_connection = None
 for testcase in test_case_candidates:
     try:
@@ -188,7 +203,7 @@ for testcase in test_case_candidates:
             #Creating logs folder and log file
             test_case_log_folder = os.path.join(LOGS_ROOT_DIR,platform_info.arch,options.compiler,platform_info.soc,platform_info.platform,session_start_time) + testcase.replace(TEST_SUITES_DIR,'').replace('.py','')
             os.makedirs(test_case_log_folder)
-            test_log_file = open(os.path.join(test_case_log_folder, platforms_list[options.platform].name + '_' + platforms_list[options.platform].buildId + '.log'), 'a+')
+            test_log_file = open(os.path.join(test_case_log_folder, platforms_list[options.platform].name + '_' + str(platforms_list[options.platform].buildId) + '.log'), 'a+')
             #Initializing common vairables
             testresult = {'RC':'f', 'Comments':"Default testresult value, please overwrite testresult in your test script ", 'Perf': None}
             print 'Running ' + testcase + ' at ' + strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
