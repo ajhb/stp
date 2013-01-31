@@ -16,6 +16,6 @@ class EquipmentInfo:
     
     def __init__(self,name, builId = None):
         self.name = name
-        self.builId = builId
+        self.buildId = builId
         platforms_list[name] = self	
 
