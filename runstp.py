@@ -149,7 +149,9 @@ try:
     exec(compile(open(options.bench_path).read(), options.bench_path, 'exec'), None, None)
 except:
     print_message_and_exit ('Problem occurred while trying to parse ' + options.bench_path +
-               '. Make sure that ' + options.bench_path + ' exists and that no errors are present in the file.')
+               '. Make sure that ' + options.bench_path + ' exists and that no errors are present in the file.\n' + 
+               ' First time users can use ' + os.path.join(ROOT_DIR,'default_bench.py') + ' as a starting point to create the file.\n' +
+               ' Option -b can be used to point to a different location for the file.')
 
 #Verifying that ther is an entry for the platform in the bench file specified
 if not platforms_list.has_key(options.platform):
@@ -180,6 +182,8 @@ exec(compile(open(test_case_defs).read(),test_case_defs, 'exec'),None,None)  #Im
 
 serial_params = platforms_list[options.platform].serial_params
 session_start_time = strftime("%a_%d_%b_%Y_%H.%M.%S", gmtime())
+
+#Creating the power controller for the platform is specified in bench.py
 power_controller = None
 
 try:

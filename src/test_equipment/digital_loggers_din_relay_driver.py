@@ -2,6 +2,7 @@ import httplib
 import time
 import base64
 
+# Class to control the Web controlled DIN relay http://www.digital-loggers.com/din.html
 class DlDinRelayController:
     host = None
     port = None

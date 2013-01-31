@@ -30,6 +30,8 @@ The following graphics shows STP directory structure after installation
     +-- src
     |   +-- equipment_info.py
     |   +-- __init__.py
+    |   +-- test_equipment
+    |        +-- digital_loggers_din_relay_driver.py
     +-- test_suites
         +-- hello_world
         |   +-- helloworld_s_func_bin.py
@@ -100,7 +102,11 @@ You only need to add files to at least two directories:
         This variable provides an abstraction of the device being tested, it is initialized to a pexpect object that uses a serial connection to communicate with
         the board being tested. With this variable the test script is able to send strings to board via platform.send(..), platform.sendline(...), etc and wait for other
         strings from the board via platform.expect(....) for more information see http://pexpect.sourceforge.net/pexpect.html and http://www.noah.org/wiki/pexpect
-
+        
+    - power_cotroller
+        This variable provides an abstraction to an equipment that controls the power supply/switch used to power cycle/reset the device being tested. This object 
+        provides the reset(), switch_on(), and switch_off() functions to cycle, turn on and turn of the device being tested.
+        
 5.4) PYTHON FUNCTIONS/VARIABLES EXPECTED BY STP from Test Cases
     - testresult
         Dictionary that must be defined by test case script to return test case results to STP. 
@@ -213,14 +219,19 @@ You only need to add files to at least two directories:
    by option -b.
 
  * -b used to specify the path of a python file where all the information regarding the setup of the equipment used for testing is found.
-    For each equipment there should be a new EquipmentInfo object instantiated that provides the information. 
-     The EquipmentInfo take two parameter as input:
-        -- the first paramters is the board name used to identify which setup information should be used for testing, 
-           by matching the -p command line parameter
-        -- the second parameter is an id used to differentiate two or more boards of the same type. 
-           Currently this feature is not implemented but it is there for future use.
+   This is the test setup configuration file. It is a python file where all the information regarding the setup of the equipment used for testing is found.
+    For each equipment there should be a new EquipmentInfo object instantiated that provides the information.  The EquipmentInfo take two parameter as input:
+            -- the first paramters is the board name used to identify which setup information should be used for testing, by matching the -p command line parameter
+            -- the second parameter is an id used to differentiate two or more boards of the same type. Currently this feature is not implemented but it is there for future use.
+            -- the following properties can be set for each entry:
+                * serial_params : A dictionary containing serial connectivity information for the equipment. Should comply with:
+                                            {'port':<serial/tty port>,'baudrate' = <bps rate>, 'bytesize' = <data bits>, 'parity':<N,O, or E>, 'stopbits':<1,1.5,2> 
+                                            [, 'timeout':<None or # of sec>] [, 'xonxoff':<0 or 1>] [, 'rtscts':<0 or 1>]}
+                * power_port: A dictionary containing information related to the power switch/relay connection of the board.  Should comply with:
+                                        {<handle of EquipmentInfo entry related to power switch/relay>:<power port used by the board on the switch/relay>}
+                * driver_class_name: A string containing the name of the driver to control the equipment if any.
+                * init_info: A dictionary containing any information required to initilize the driver specified in driver_class_name.
     During a test a board is selected by matching the parameter passed as -p in the command line with the board name passed to EquipmentInfo.
-    Currently, only board serial connection information is supported in the framework.
     This option defaults to <stp folder>/bench.py
  
  * -f used to specify a comma separated list of areas to test. 
