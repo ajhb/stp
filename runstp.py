@@ -12,6 +12,9 @@ import logging
 import re
 
 from src.test_equipment.digital_loggers_din_relay_driver import DlDinRelayController
+from src.test_equipment.devantech_eth_relay_driver import DevantechRelayController
+from src.test_equipment.usb_switch_controller import TiUsbSwitch
+
 from time import gmtime, strftime
 from optparse import OptionParser
 
@@ -148,10 +151,11 @@ from src.equipment_info import *
 try:
     exec(compile(open(options.bench_path).read(), options.bench_path, 'exec'), None, None)
 except:
+    print traceback.format_exc()
     print_message_and_exit ('Problem occurred while trying to parse ' + options.bench_path +
                '. Make sure that ' + options.bench_path + ' exists and that no errors are present in the file.\n' + 
                ' First time users can use ' + os.path.join(ROOT_DIR,'default_bench.py') + ' as a starting point to create the file.\n' +
-               ' Option -b can be used to point to a different location for the file.')
+               ' Option -b can be used to point to a different location for the file.\n')
 
 #Verifying that ther is an entry for the platform in the bench file specified
 if not platforms_list.has_key(options.platform):
@@ -183,7 +187,25 @@ exec(compile(open(test_case_defs).read(),test_case_defs, 'exec'),None,None)  #Im
 serial_params = platforms_list[options.platform].serial_params
 session_start_time = strftime("%a_%d_%b_%Y_%H.%M.%S", gmtime())
 
-#Creating the power controller for the platform is specified in bench.py
+#Function to create instances of drivers associated with an equipment     
+def get_equipment(equipment_info):
+    try:
+        if equipment_info.init_info:
+            equipment = getattr(sys.modules[__name__],equipment_info.driver_class_name)(equipment_info.init_info)
+        else:
+            equipment = getattr(sys.modules[__name__],equipment_info.driver_class_name)()
+        
+        if equipment_info.params:
+            for param_name, param_value in equipment_info.params.iteritems():
+                setattr(equipment, param_name, param_value)
+                
+        return equipment
+    except Exception, e:
+        print traceback.format_exc()
+        raise Exception('Problem while trying to Initialize Equipment ' + equipment_info.name + ', ' + str(equipment_info.buildId) +
+        '. Please check information in your bench for this equipment\n'+"%r"%e)
+        
+#Creating the power controller for the platform if power_port has been specified in bench.py
 power_controller = None
 
 try:
@@ -199,14 +221,33 @@ except Exception, e:
     sys.exit(0)
 
 serial_connection = None
+platform_setup = platforms_list[options.platform]
+__clean_attr__ = set(dir())
+dirty_attr = set(dir())
 for testcase in test_case_candidates:
     try:
         requires = None
         exec(compile(open(testcase).read(), testcase, 'single'),None,None)
         if check_requires_field(requires, platform_features):
+            
+            #Cleaning environment before running the test case
+            for new_attr in dirty_attr - __clean_attr__:
+                if new_attr in ['__clean_attr__','testcase']:
+                    continue
+                delattr(sys.modules[__name__], new_attr)
+            
             #Creating logs folder and log file
             test_case_log_folder = os.path.join(LOGS_ROOT_DIR,platform_info.arch,options.compiler,platform_info.soc,platform_info.platform,session_start_time) + testcase.replace(TEST_SUITES_DIR,'').replace('.py','')
             os.makedirs(test_case_log_folder)
+            
+            #Function to return log folder location for test case
+            #file_name : string containing the name of the log file
+            #Returns: complete path of the log file if file_name is given, otherwise, returns the logs folder path
+            def get_log_path(file_name=None):
+                if file_name:
+                    return os.path.join(test_case_log_folder, file_name)
+                return test_case_log_folder
+                
             test_log_file = open(os.path.join(test_case_log_folder, platforms_list[options.platform].name + '_' + str(platforms_list[options.platform].buildId) + '.log'), 'a+')
             #Initializing common vairables
             testresult = {'RC':'f', 'Comments':"Default testresult value, please overwrite testresult in your test script ", 'Perf': None}
@@ -239,7 +280,7 @@ for testcase in test_case_candidates:
         test_results[testcase.replace(TEST_SUITES_DIR,'')]  = {'RC': 'F', 'Comments': e, 'Perf': None} 
     if serial_connection:
         serial_connection.close()
-        
+    dirty_attr = set(dir())    
 print "\n\nResults summary"
 for key, val in test_results.items():
     sys.stdout.write(key)
