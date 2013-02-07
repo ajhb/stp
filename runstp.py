@@ -207,7 +207,7 @@ def get_equipment(equipment_info):
 power_controller = None
 
 try:
-    if platforms_list[options.platform].params['power_port']:
+    if platforms_list[options.platform].params and 'power_port' in platforms_list[options.platform].params:
         for power_info, power_port in platforms_list[options.platform].params['power_port'].iteritems():
             power_controller=getattr(sys.modules[__name__],power_info.driver_class_name)(power_info.init_info)
             power_controller.power_port = power_port
