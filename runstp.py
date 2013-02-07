@@ -135,6 +135,8 @@ try:
             item = getattr(platform_info, item_string)
             if isinstance(item,list):
                 platform_features.extend(item)
+            elif isinstance(item,dict):
+                platform_features.extend(item.keys())
             else:
                 platform_features.append(item)
 except Exception, e:
