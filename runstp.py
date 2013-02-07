@@ -24,7 +24,7 @@ logging.level=logging.DEBUG
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) #runstp root folder. Folder where runstp is located
 TEST_SUITES_DIR = os.path.join(ROOT_DIR, 'test_suites') #runstp test suites directory. Folder where runstp test suites are located relative to ROOT_DIR
 PLATFORMS_DIR = os.path.join(ROOT_DIR, 'platforms') #runstp platform info directory. Folder where runstp keeps files containing information related to the platforms like architecture, interfaces, etc
-TEST_BIN_ROOT = os.path.join(ROOT_DIR, '..','binary') #compiled test binaries location
+TEST_BIN_ROOT = os.path.join(ROOT_DIR, '..','..','binary') #compiled test binaries location
 LOGS_ROOT_DIR = os.path.join(ROOT_DIR,'logs') #logs root folder
 
 #Function to parse comma separated arguments
