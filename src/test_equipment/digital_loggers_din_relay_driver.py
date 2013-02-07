@@ -12,7 +12,7 @@ class DlDinRelayController:
     def __init__(self, controller_info={}):
         if not set(['host', 'port', 'username', 'password']) <= set(controller_info.keys()):
             raise Exception('Constructor is missing required information, make sure instantiation call complies with: ' +
-                                        "{'host':<ip name or address>,'port' = <server port>, 'username' = <username>, 'password':<password> ['power_port':<power port number>}]")
+                                        "{'host':<ip name or address>,'port': <server port>, 'username': <username>, 'password':<password> ['power_port':<power port number>}]")
         self.host = controller_info['host']
         self.power_port = controller_info.get('power_port',None)
         self.port = controller_info['port']
