@@ -184,7 +184,7 @@ test_results = {} #Results Dictionary
 test_case_defs = os.path.join(TEST_SUITES_DIR,'templates','test_defaults.py')
 exec(compile(open(test_case_defs).read(),test_case_defs, 'exec'),None,None)  #Importing the test case default values
 
-serial_params = platforms_list[options.platform].serial_params
+serial_params = platforms_list[options.platform].init_info
 session_start_time = strftime("%a_%d_%b_%Y_%H.%M.%S", gmtime())
 
 #Function to create instances of drivers associated with an equipment     
@@ -209,8 +209,8 @@ def get_equipment(equipment_info):
 power_controller = None
 
 try:
-    if platforms_list[options.platform].power_port:
-        for power_info, power_port in platforms_list[options.platform].power_port.iteritems():
+    if platforms_list[options.platform].params['power_port']:
+        for power_info, power_port in platforms_list[options.platform].params['power_port'].iteritems():
             power_controller=getattr(sys.modules[__name__],power_info.driver_class_name)(power_info.init_info)
             power_controller.power_port = power_port
 except Exception, e:
@@ -289,4 +289,3 @@ for key, val in test_results.items():
     print('')
      
 print '\n\nLogs for this session can be found at file://'+os.path.join(LOGS_ROOT_DIR,platform_info.arch,options.compiler,platform_info.soc,platform_info.platform,session_start_time) 
-

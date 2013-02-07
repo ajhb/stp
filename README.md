@@ -32,10 +32,17 @@ The following graphics shows STP directory structure after installation
     |   +-- __init__.py
     |   +-- test_equipment
     |        +-- digital_loggers_din_relay_driver.py
+    |         .
+    |         .
+    |         .
+    |
     +-- test_suites
         +-- hello_world
         |   +-- helloworld_s_func_bin.py
         |   +-- helloworld_s_func_load_w_template.py
+        .
+        .
+        .
         +-- templates
             +-- __init__.py
             +-- load_template.py
@@ -87,7 +94,7 @@ You only need to add files to at least two directories:
 * STP provides the following functions and variables to aide in test case development:
     - serial_load(bin_path, root_path)
         Function to load binary into platform. Can be called with only bin_path as parameter serial_load(bin_path).
-        Takes bin_path and root_path as inputs. bin_path is a string containing the path of the binary to be loaded relative to root_path. root_path is a string
+        Takes: bin_path and root_path as inputs. bin_path is a string containing the path of the binary to be loaded relative to root_path. root_path is a string
         containing the path of the base directory of bin_path, this parameter points to
           <STP installation directory>/../binary/<architecture i.e armv7a>/<compiler i.e. gcc>/<soc i.e. am335x>/<evm i.e evmskAM335x>/
         by default
@@ -95,13 +102,27 @@ You only need to add files to at least two directories:
         
     - runstp_import(module_path)
         Function to import templates in test cases with access to runstp objects within the module. This function allows reuse of code across test scripts.
-        Takes module_path as input, a string containing the path of the module being imported, relative to <STP install location>. 
+        Takes: module_path as input, a string containing the path of the module being imported, relative to <STP install location>. 
         Returns: Nothing
       
     - platform
         This variable provides an abstraction of the device being tested, it is initialized to a pexpect object that uses a serial connection to communicate with
         the board being tested. With this variable the test script is able to send strings to board via platform.send(..), platform.sendline(...), etc and wait for other
         strings from the board via platform.expect(....) for more information see http://pexpect.sourceforge.net/pexpect.html and http://www.noah.org/wiki/pexpect
+        
+    - platform_setup
+        This variable provides all the information defined in the bench file for the platform being used, in other words it gives the used access to all the attributes
+        defined in the bench file for the board being tested inside the test script
+        
+    - get_log_path(file_name)
+        This function returns the path of the logs folder/file created for the test case.  
+        Takes: file_name (optional): the name of the file that to be included in the path
+        Returns: the path of the log file is file name is specified, otherwise returns the path of the log folder created for the test case
+    
+    - get_equipment(equipment_info)
+        This function allows the user to create an instance of a test equipment object in a test case.
+        Takes: equipment_info an EquipmentInfo object
+        Returns: An object of the class specified in the driver_class_name property of the equipment_info passed as argument.
         
     - power_cotroller
         This variable provides an abstraction to an equipment that controls the power supply/switch used to power cycle/reset the device being tested. This object 
@@ -188,8 +209,16 @@ You only need to add files to at least two directories:
             2. Obtain the package from http://pypi.python.org/pypi/xmodem
             3. Decompress the archive
             4. cd to the decompress location and run "sudo python setup.py install
+    
+    - PyUSB
+        This module provides an abstraction to the USB devices connected to the host 
+            1. Obtain the package from http://sourceforge.net/projects/pyusb/ version 1.0 or later
+            2. Decompress the archive
+            3. cd to the decompress location and run "sudo python setup.py install
+            4. Note: Do not install this package with "sudo apt-get install python-usb",because this will install an older
+                version (0.4) of the package that does not support the interface being used in the USB test cases
         
- * cd to <Starterware installation directory> and clone the project with git clone https://github.com/ajhb/stp.git
+ * cd to <Starterware install location>/test_bench/stp
 
 7) HOW TO RUN TESTS
 ================================================================================
@@ -219,20 +248,22 @@ You only need to add files to at least two directories:
    by option -b.
 
  * -b used to specify the path of a python file where all the information regarding the setup of the equipment used for testing is found.
-   This is the test setup configuration file. It is a python file where all the information regarding the setup of the equipment used for testing is found.
+    This is the test setup configuration file. It is a python file where all the information regarding the setup of the equipment used for testing is found.
     For each equipment there should be a new EquipmentInfo object instantiated that provides the information.  The EquipmentInfo take two parameter as input:
-            -- the first paramters is the board name used to identify which setup information should be used for testing, by matching the -p command line parameter
-            -- the second parameter is an id used to differentiate two or more boards of the same type. Currently this feature is not implemented but it is there for future use.
-            -- the following properties can be set for each entry:
-                * serial_params : A dictionary containing serial connectivity information for the equipment. Should comply with:
-                                            {'port':<serial/tty port>,'baudrate' = <bps rate>, 'bytesize' = <data bits>, 'parity':<N,O, or E>, 'stopbits':<1,1.5,2> 
-                                            [, 'timeout':<None or # of sec>] [, 'xonxoff':<0 or 1>] [, 'rtscts':<0 or 1>]}
-                * power_port: A dictionary containing information related to the power switch/relay connection of the board.  Should comply with:
-                                        {<handle of EquipmentInfo entry related to power switch/relay>:<power port used by the board on the switch/relay>}
-                * driver_class_name: A string containing the name of the driver to control the equipment if any.
-                * init_info: A dictionary containing any information required to initilize the driver specified in driver_class_name.
+         -- the first paramters is the board name used to identify which setup information should be used for testing, by matching the -p command line parameter
+         -- the second parameter is an id used to differentiate two or more boards of the same type. Currently this feature is not implemented but it is there for future use.
+         -- the following properties can be set for each entry:
+               * init_info : A dictionary containing any information required to initilize the equipment. For the TI platform supported in STP this entry must comply with
+                                           {'port':<serial/tty port>,'baudrate' = <bps rate>, 'bytesize' = <data bits>, 'parity':<N,O, or E>, 'stopbits':<1,1.5,2> 
+                                           [, 'timeout':<None or # of sec>] [, 'xonxoff':<0 or 1>] [, 'rtscts':<0 or 1>]}
+               * params: A dictionary containing information related to the setup of the board. Currently the folowing dictionay entries have special
+                               meaning :
+                                   - power_port: A dictionary containing information related to the power switch/relay connection of the board.  Should comply with:
+                                      {<handle of EquipmentInfo entry related to power switch/relay>:<power port used by the board on the switch/relay>}
+               * driver_class_name: A string containing the name of the driver to control the equipment if any.
+               
     During a test a board is selected by matching the parameter passed as -p in the command line with the board name passed to EquipmentInfo.
-    This option defaults to <stp folder>/bench.py
+
  
  * -f used to specify a comma separated list of areas to test. 
     For example for -f area1,area2 STP will select all possible test cases from test_suites/<area1> and test_suites/<area1> 
