@@ -11,9 +11,7 @@ import xmodem
 import logging
 import re
 
-from src.test_equipment.digital_loggers_din_relay_driver import DlDinRelayController
-from src.test_equipment.devantech_eth_relay_driver import DevantechRelayController
-from src.test_equipment.usb_switch_controller import TiUsbSwitch
+from src.test_equipment.test_equipment import *
 
 from time import gmtime, strftime
 from optparse import OptionParser

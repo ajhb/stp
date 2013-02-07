@@ -1,0 +1,4 @@
+#File used to include a new test equipment driver in STP
+from digital_loggers_din_relay_driver import DlDinRelayController
+from devantech_eth_relay_driver import DevantechRelayController
+from usb_switch_controller import TiUsbSwitch
