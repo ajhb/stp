@@ -1,7 +1,7 @@
 import socket
 import time
 
-# Class to control the Web controlled DIN relay http://www.digital-loggers.com/din.html
+# Class to control the Devantech relay controller http://www.robot-electronics.co.uk/htm/eth_rly16tech.htm
 class DevantechRelayController:
     host = None
     port = None
